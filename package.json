@@ -3,7 +3,7 @@
   "version": "0.5.3",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node server.js"
   },
   "private": true,
   "dependencies": {
