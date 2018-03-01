@@ -4,6 +4,9 @@ const express = require('express');
 const app = express();
 const expressWs = require('express-ws')(app);
 
+const port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
+      ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
+
 // Helpers
 const config = require('./server/config');
 const wsApi = require('./server/ws-api/index');
@@ -27,6 +30,5 @@ app.ws('/', wsApi);
 
 app.use('/', express.static('dist'));
 
-app.listen(config.applicationPort, () =>
-  console.log(`Server started on port ${config.applicationPort}`)
-);
+app.listen(port, ip);
+console.log(`Server started on port ${port}`);
