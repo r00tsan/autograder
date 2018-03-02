@@ -113,7 +113,8 @@ function getCandidatesFromGoogleSheet() {
       }))
       .filter((v,i,a) =>
         a.map((el) => el.email).indexOf(v.email) === i // filtering only candidates with unique emails
-        && !!v.score // and if candidate have score
+        && !isNaN(parseInt(v.score, 10))
+        && !!v.score// and if candidate have score
       );
 
     if (!scoresFromGoogleSheet.length) {
