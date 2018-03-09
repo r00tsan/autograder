@@ -22,7 +22,7 @@ module.exports = {
     CONFIG.appIdList = helper.appIdsToArray(config.appIdList);
 
     helper.setStatus('process');
-    endorseCandidates();
+    checkCandidatesStatus();
   },
   abort: (ws) => {
     isAborted = true;
@@ -56,6 +56,54 @@ function removeQueueElement(request) {
   requestQueue.splice(requestQueue.indexOf(request), 1);
 }
 
+function checkCandidatesStatus() {
+  let counter = 0;
+  CONFIG.appIdList.forEach(element => {
+    let id = element.id ? element.id : element;
+    let request = Request.get({
+      url: api.getApplication(id),
+      headers: helper.getHeaders(true)
+    }, (err, response, body) => {
+      removeQueueElement(request);
+      helper.errorHandler(response.statusCode, id);
+
+      if (isAborted) {
+        helper.sendMessage(`Endorsing was stopped by user`);
+        return helper.setStatus('pending');
+      }
+
+      counter++;
+
+      try {
+        const data = JSON.parse(body);
+        if (data.task !== 'accountManagerEndorsesApplication') {
+          helper.candidateStatusHandler(data.status, id);
+          CONFIG.appIdList.splice(
+            CONFIG.appIdList.indexOf(
+              CONFIG.appIdList.find((el) => el.id === id)
+            ), 1);
+          counter--;
+        } else {
+          helper.sendMessage(`Candidate with Application ID ${id} ready for endorse`);
+        }
+      } catch (e) {
+        helper.sendMessage(e.toString());
+      }
+
+      if (counter === CONFIG.appIdList.length) {
+        helper.sendMessage(`All candidates were tested and ${CONFIG.appIdList.length} ready to endorse`);
+        if(CONFIG.appIdList.length) {
+          endorseCandidates();
+        } else {
+          helper.sendMessage(`There is no candidates to endorse. Terminating.`);
+          helper.setStatus('pending');
+        }
+      }
+    });
+    requestQueue.push(request);
+  });
+}
+
 function endorseCandidates() {
   let counter = 0;
   CONFIG.appIdList.forEach(element => {
@@ -64,6 +112,7 @@ function endorseCandidates() {
       url: api.endorse(id),
       headers: helper.getHeaders(false)
     }, (err, response) => {
+
       removeQueueElement(request);
       if ( helper.errorHandler(response.statusCode, id) !== 200 ) {
         return;
@@ -129,11 +178,12 @@ function acceptCandidates(counter) {
       url: api.accept(id),
       headers: helper.getHeaders(false),
       body: JSON.stringify(api.payloads.accept(id))
-    }, (err, response) => {
+    }, (err, response, body) => {
       removeQueueElement(request);
       if ( helper.errorHandler(response.statusCode, id) !== 200 ) {
-        helper.sendMessage(`Something wrong happens with candidate ${id}, please send report below to developer`);
-        helper.sendMessage(response);
+        if (response.statusCode === 400) {
+          helper.sendMessage(`Candidate with Application ID ${id} already on marketplace`);
+        }
       } else {
         helper.sendMessage(`Candidate with Application ID ${id} successfully accepted`);
       }

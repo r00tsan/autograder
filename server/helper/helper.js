@@ -53,6 +53,24 @@ class Helper {
     }));
   }
 
+  isCandidateScored(application, testDetails) {
+    const evaluations = application.testsEvaluations
+      .find((evaluations) => evaluations.type === 'RESUME_RUBRIC_EVALUATION');
+    const testId = testDetails.resumeRubrics[0].resumeRubric.id;
+    let resumeRubric;
+
+    if(evaluations) {
+      resumeRubric = evaluations.resumeRubricScores.find((rubric) => rubric.resumeRubric.id === testId);
+    }
+
+    if(resumeRubric && resumeRubric.score) {
+      const score = parseInt(resumeRubric.score, 10);
+      return !isNaN(score) && score > 0;
+    }
+
+    return false;
+  }
+
   scoreResumes(application, testDetails, score) {
     return {
       id: application.id,
@@ -75,15 +93,40 @@ class Helper {
         break;
       case 500:
         this.sendMessage(`Server error`);
+        this.setStatus('pending');
         break;
       case 401:
         this.sendMessage(`Wrong credentials, try again`);
+        this.setStatus('pending');
         break;
       case 403:
         this.sendMessage(`You have no access to Recruiter part`);
+        this.setStatus('pending');
         break;
     }
     return statusCode;
+  }
+  // status || task
+  // accountManagerEndorsesApplication - process
+  // ACCEPTED - stop - `Already on marketplace`
+  // REJECTED - stop - 'Was already Rejected'
+  // IN_PROGRESS - stop 'Didn't finished with tests'
+  // CANCELLED - stop
+  // candidateProvidesContactInformation1 || candidateVerifiesEmailAddress
+  // techTrialUpdatesStatus1
+  candidateStatusHandler(status, id) {
+    switch(status) {
+      case 'ACCEPTED':
+        this.sendMessage(`Candidate with Application ID ${id} already on marketplace`);
+        break;
+      case 'REJECTED':
+      case 'CANCELLED':
+        this.sendMessage(`Candidate with Application ID ${id} was already rejected`);
+        break;
+      case 'IN_PROGRESS':
+        this.sendMessage(`Candidate with Application ID ${id} didn't finished with tests`);
+        break;
+    }
   }
 
 }

@@ -77,6 +77,9 @@ function getJobDetails() {
     url: api.jobDetails(CONFIG.jobId),
     headers: helper.getHeaders(true),
   }, function (error, response, body) {
+    if ( helper.errorHandler(response.statusCode, 0) !== 200 ) {
+      return;
+    }
     try {
       testDetails = JSON.parse(body).tests.filter((el) => el.test.type === 'RESUME_RUBRIC')[0].test;
       getCandidatesFromGoogleSheet();
@@ -108,8 +111,8 @@ function getCandidatesFromGoogleSheet() {
 
     scoresFromGoogleSheet = response.data.values
       .map((row) => ({
-        email: row[emailColumn],
-        score: row[gradeColumn]
+        email: row[emailColumn].trim(),
+        score: row[gradeColumn].trim()
       }))
       .filter((v,i,a) =>
         a.map((el) => el.email).indexOf(v.email) === i // filtering only candidates with unique emails
@@ -156,6 +159,14 @@ function getAllCandidatesFromXO(pageSize) {
       scoresFromGoogleSheet.forEach((candidate) => {
         let application = body.content.find(app => app.candidate.email === candidate.email);
         if (!application || !candidate.score) { return; }
+
+        if(helper.isCandidateScored(application, testDetails)) {
+          return helper.sendMessage(`
+            ${application.candidate.printableName} - 
+            ${application.candidate.email} - 
+            ALREADY SCORED
+          `);
+        }
         scoredCandidates.push(
           helper.scoreResumes(application, testDetails, candidate.score)
         );

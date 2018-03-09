@@ -1,2 +1,0 @@
-Successfully connected!
-The API returned an error: TypeError: Cannot read property 'id' of undefined

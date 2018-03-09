@@ -1,5 +1,6 @@
-const BASE_URL = 'https://api.crossover.com/api/';
+const BASE_URL = 'https://api-qa.crossover.com/api/';
 const API = {
+  getApplication: (appId) => `${BASE_URL}hire/applications/${appId}?avatarType=ACCOUNT_MANAGER`,
   search: (pageSize, page, avatarType) => `${BASE_URL}hire/applications/search?avatarType=${avatarType}&pageSize=${pageSize}&page=${page}`,
   saveGradingScores: `${BASE_URL}hire/applications/scores/written-evaluations`,
   grade: (id) => `${BASE_URL}hire/applications/${id}/recruitment-analysts/actions?action=grade5qTest`,
