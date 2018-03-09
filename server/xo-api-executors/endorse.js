@@ -167,7 +167,7 @@ function acceptCandidates(counter) {
     counter = counter ? counter : 0;
 
     if (counter === CONFIG.appIdList.length) {
-      helper.sendMessage(`All candidates were moved to Marketplace, grab a beer!`);
+      helper.sendMessage(`All candidates were moved to Marketplace!`);
       helper.setStatus('pending');
       return;
     }
@@ -198,33 +198,4 @@ function acceptCandidates(counter) {
     });
     requestQueue.push(request);
   });
-
-  // CONFIG.appIdList.forEach(element => {
-  //   let id = element.id ? element.id : element;
-  //
-  //   let request = Request.post({
-  //     url: api.accept(id),
-  //     headers: helper.getHeaders(false),
-  //     body: JSON.stringify(api.payloads.accept(id))
-  //   }, (err, response) => {
-  //     removeQueueElement(request);
-  //     if ( helper.errorHandler(response.statusCode, id) !== 200 ) {
-  //       helper.sendMessage(response);
-  //       helper.sendMessage(err);
-  //       return;
-  //     }
-  //
-  //     helper.sendMessage(`Candidate with Application ID ${id} successfully accepted`);
-  //     if (isAborted) {
-  //       helper.sendMessage(`Accepting was stopped by user`);
-  //       return helper.setStatus('pending');
-  //     }
-  //     counter++;
-  //     if (counter === CONFIG.appIdList.length) {
-  //       helper.sendMessage(`All candidates were moved to Marketplace, grab a beer!`);
-  //       helper.setStatus('pending');
-  //     }
-  //   });
-  //   requestQueue.push(request);
-  // });
 }

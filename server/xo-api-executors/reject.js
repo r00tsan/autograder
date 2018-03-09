@@ -79,7 +79,7 @@ function startRejection() {
       counter++;
       if (counter === CONFIG.appIdList.length) {
         helper.setStatus('pending');
-        helper.sendMessage(`All candidates in list were rejected, grab a beer!`);
+        helper.sendMessage(`All candidates in list were rejected!`);
       }
     });
     requestQueue.push(request);

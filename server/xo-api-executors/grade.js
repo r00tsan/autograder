@@ -66,12 +66,14 @@ function removeQueueElement(request) {
 //-------------------------------------------------------
 // seraches candidates to gradin un the pipeline
 function searchData(jobId, candidates, page) {
-  page = page === undefined ? 0 : page;
-  candidates = !candidates ? [] : candidates;
-  helper.sendMessage(`Making request #${page + 1} for pipeline ${jobId} with limitation ${CONFIG.updateLimit}`);
+  page = page === undefined ? 1 : page;
+
+  if(page > 1) {
+    helper.sendMessage(`Fetching candidates for pipeline ${jobId}`);
+  }
 
   let request = Request.post({
-    url: api.search(CONFIG.updateLimit, page, 'RECRUITMENT_ANALYST'),
+    url: api.search(page, 'RECRUITMENT_ANALYST'),
     headers: helper.getHeaders(true),
     body: JSON.stringify({
       tasks: ['recruitmentAnalystGrades5QTest'],
@@ -97,18 +99,15 @@ function searchData(jobId, candidates, page) {
         return nextRequest();
       }
 
-      body.content.forEach(element => candidates.push(element));
-
       if (!body.last) {
-        return searchData(jobId, candidates, ++page);
+        return searchData(jobId, candidates, body.totalElements + 1);
       }
 
       helper.sendMessage(`On this pipeline we have ${numberOfCandidates} candidates`);
-      const newScores = helper.gradeQuestions(candidates, CONFIG.correctScore);
+      const newScores = helper.gradeQuestions(body.content, CONFIG.correctScore);
       helper.sendMessage(`Application IDs: ${
         newScores.map((element) => element.id).join(', ')
         }`);
-
       saveScores(newScores);
     } catch (e) {
       helper.sendMessage(e.toString());
@@ -153,12 +152,10 @@ function submitScores(newScores) {
       removeQueueElement(request);
 
       if ( helper.errorHandler(response.statusCode, newScores[i].id) !== 200 ) {
+        helper.sendMessage(body);
+        helper.sendMessage(response);
+        helper.sendMessage(error);
         return;
-      }
-
-      if (error || body.httpStatus === '500') {
-        helper.sendMessage('ERROR! #### ' + body);
-        throw error;
       }
 
       helper.sendMessage(`Candidate with Application ID: ${newScores[i].id} graded`);
@@ -188,7 +185,7 @@ function nextRequest() {
     pipelineId = CONFIG.pipelineIds[currentPipeline];
     searchData(pipelineId);
   } else {
-    helper.sendMessage('SUBMIT COMPLETE! GRAB A BEER!');
+    helper.sendMessage('SUBMIT COMPLETE!');
     helper.setStatus('pending');
   }
 

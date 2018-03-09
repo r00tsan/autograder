@@ -111,8 +111,8 @@ function getCandidatesFromGoogleSheet() {
 
     scoresFromGoogleSheet = response.data.values
       .map((row) => ({
-        email: row[emailColumn].trim(),
-        score: row[gradeColumn].trim()
+        email: row[emailColumn] ? row[emailColumn].trim() : undefined,
+        score: row[gradeColumn] ? row[gradeColumn].trim() : undefined
       }))
       .filter((v,i,a) =>
         a.map((el) => el.email).indexOf(v.email) === i // filtering only candidates with unique emails
@@ -197,7 +197,7 @@ function saveScores(newScores) {
     if (error) {
       throw error;
     }
-    helper.sendMessage(`Scores saved. You can grab a beer`);
+    helper.sendMessage(`Scores saved.`);
     helper.setStatus('pending');
   });
 }
