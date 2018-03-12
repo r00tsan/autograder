@@ -108,8 +108,14 @@ function getCandidatesFromGoogleSheet() {
     const gradeColumn = response.data.values[0].indexOf(CONFIG.resume.columnName);
     const emailColumn = response.data.values[0].indexOf('Email');
     response.data.values.splice(0, 1);
-
     scoresFromGoogleSheet = response.data.values
+      .filter((item) => {
+        const haveLinkedInProfile = item.toString().search('linkedin.com') > -1;
+        if (haveLinkedInProfile) {
+          helper.sendMessage(`Candidate with email ${item[emailColumn]} have LinkedIn link and will be excluded`);
+        }
+        return !haveLinkedInProfile;
+      })
       .map((row) => ({
         email: row[emailColumn] ? row[emailColumn].trim() : undefined,
         score: row[gradeColumn] ? row[gradeColumn].trim() : undefined
@@ -119,7 +125,6 @@ function getCandidatesFromGoogleSheet() {
         && !isNaN(parseInt(v.score, 10))
         && !!v.score// and if candidate have score
       );
-
     if (!scoresFromGoogleSheet.length) {
       helper.sendMessage(`There is no candidates to grade in this sheet`);
     }
@@ -162,14 +167,16 @@ function getAllCandidatesFromXO(pageSize) {
 
         if(helper.isCandidateScored(application, testDetails)) {
           return helper.sendMessage(`
-            ${application.candidate.printableName} - 
-            ${application.candidate.email} - 
+            ${application.candidate.printableName} -
+            ${application.candidate.email} -
             ALREADY SCORED
           `);
         }
+
         scoredCandidates.push(
           helper.scoreResumes(application, testDetails, candidate.score)
         );
+
         helper.sendMessage(`
           ${application.candidate.printableName} - 
           ${application.candidate.email} - 
