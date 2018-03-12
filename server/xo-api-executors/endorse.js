@@ -81,17 +81,25 @@ function checkCandidatesStatus() {
           case 'candidateTakesTalentAdvocateTest':
             helper.sendMessage(`Candidate with Application ID ${id} ready for endorse`);
             break;
+          case 'recruitmentAnalystGrades5QTest':
+            helper.sendMessage(`Candidate with Application ID ${id} is waiting for a grade for free response questions`);
+            removeCandidate();
+            break;
           default:
             helper.candidateStatusHandler(data.status, id);
-            CONFIG.appIdList.splice(
-              CONFIG.appIdList.indexOf(
-                CONFIG.appIdList.find((el) => el.id === id)
-              ), 1);
-            counter--;
+            removeCandidate();
             break;
         }
       } catch (e) {
         helper.sendMessage(e.toString());
+      }
+
+      function removeCandidate() {
+        CONFIG.appIdList.splice(
+          CONFIG.appIdList.indexOf(
+            CONFIG.appIdList.find((el) => el.id === id)
+          ), 1);
+        counter--;
       }
 
       if (counter === CONFIG.appIdList.length) {
