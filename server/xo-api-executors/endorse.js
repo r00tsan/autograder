@@ -76,15 +76,19 @@ function checkCandidatesStatus() {
 
       try {
         const data = JSON.parse(body);
-        if (data.task !== 'accountManagerEndorsesApplication') {
-          helper.candidateStatusHandler(data.status, id);
-          CONFIG.appIdList.splice(
-            CONFIG.appIdList.indexOf(
-              CONFIG.appIdList.find((el) => el.id === id)
-            ), 1);
-          counter--;
-        } else {
-          helper.sendMessage(`Candidate with Application ID ${id} ready for endorse`);
+        switch (data.task) {
+          case 'accountManagerEndorsesApplication':
+          case 'candidateTakesTalentAdvocateTest':
+            helper.sendMessage(`Candidate with Application ID ${id} ready for endorse`);
+            break;
+          default:
+            helper.candidateStatusHandler(data.status, id);
+            CONFIG.appIdList.splice(
+              CONFIG.appIdList.indexOf(
+                CONFIG.appIdList.find((el) => el.id === id)
+              ), 1);
+            counter--;
+            break;
         }
       } catch (e) {
         helper.sendMessage(e.toString());
