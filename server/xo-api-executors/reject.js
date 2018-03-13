@@ -56,7 +56,8 @@ function removeQueueElement(request) {
 
 function startRejection() {
   let counter = 0;
-  CONFIG.appIdList.forEach(id => {
+  CONFIG.appIdList.forEach(item => {
+    const id = item.id ? item.id : item;
     let request = Request.delete({
       url: api.reject(id),
       headers: headers,
